@@ -31,11 +31,16 @@ class QueueUrl
      */
     public function getQueue()
     {
-        while (count($this->queue) > 0) {
-            $url = array_shift($this->queue);
+        while ($url = array_pop($this->queue)) {
+            printf("[LOG] New Request: %s\n", $url);
 
             yield new Request('GET' , $url);
         }
+    }
+
+    public function countQueue() : int
+    {
+        return count($this->queue);
     }
 
     /**
