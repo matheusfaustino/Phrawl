@@ -16,11 +16,13 @@ $pool = new Pool($client, $queue->getQueue(), [
     },
 
     // seria legal que cada request pudesse escolher a funcao de callback
-    'fulfilled' => function(Response $response, int $index) use ($queue) {
+    'fulfilled' => function(Response $response) use ($queue) {
+        printf("[LOG] Calling Fulfilled \n");
+
         $crawler = new Crawler(null, 'http://lespepitestech.com/');
         $crawler->addContent($response->getBody(), 'text/html');
 
-        var_dump($crawler->filter('title')->getNode(0)->textContent);
+        printf("%s\n", $crawler->filter('title')->getNode(0)->textContent);
         $crawler->filter('.startup-entry .s-e-img a')->each(function(Crawler $node, $i) use ($queue) {
             $href = $node->getNode(0)->getAttribute('href');
 
@@ -28,8 +30,9 @@ $pool = new Pool($client, $queue->getQueue(), [
             $queue->addItemQueue(sprintf('%s%s', 'http://lespepitestech.com', $href));
         });
     },
+
     'rejected' => function ($reason, $index) {
-        // rejeitou
+        echo "Error: {$reason}\n\n";
     },
 ]);
 
