@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
-use GuzzleHttp\{Client, Pool, Psr7\Request, Psr7\Response};
+use GuzzleHttp\{Client, Pool, Psr7\Response};
 use Symfony\Component\DomCrawler\Crawler;
 
 $client = new Client();
@@ -10,7 +10,11 @@ $queue = new Phpcrawler\QueueUrl(['http://lespepitestech.com/']);
 
 $pool = new Pool($client, $queue->getQueue(), [
     // mais que 1, ele nao roda as outras requisicoes
-    'concurrency' => 1,
+    // @url: https://github.com/guzzle/guzzle/issues/1108
+    'concurrency' => function() use ($queue) {
+        return max(1, min($queue->countQueue(), 3));
+    },
+
     // seria legal que cada request pudesse escolher a funcao de callback
     'fulfilled' => function(Response $response, int $index) use ($queue) {
         $crawler = new Crawler(null, 'http://lespepitestech.com/');
