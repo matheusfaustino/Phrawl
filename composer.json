@@ -1,0 +1,9 @@
+{
+    "require": {
+        "guzzlehttp/guzzle": "~6.0",
+        "fabpot/goutte": "^3.2"
+    },
+    "autoload": {
+        "psr-4": {"Phpcrawler\\": "./"}
+    }
+}
