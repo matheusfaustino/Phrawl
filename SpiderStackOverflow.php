@@ -1,6 +1,8 @@
 <?php
 
-namespace Phpcrawler;
+use Phpcrawler\BaseCrawler;
+use Phpcrawler\ProcessorPoolRequest;
+use Symfony\Component\DomCrawler\Crawler;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -8,7 +10,7 @@ final class SpiderStackOverflow extends BaseCrawler
 {
     protected $name = 'stackoverflow';
 
-    protected $configs = ['concurrency' => 10];
+    protected $configs = ['concurrency' => 2];
 
     public $start_urls
         = [
@@ -19,7 +21,7 @@ final class SpiderStackOverflow extends BaseCrawler
             'https://stackoverflow.com/questions/5355121/passing-dict-to-constructor/5355152#5355152',
         ];
 
-    public function parser(\Symfony\Component\DomCrawler\Crawler $response)
+    public function parser(Crawler $response)
     {
         printf("Title: %s \nQuestion: %s \n\n", $response->filterXPath('//title')->text()
             , $response->filterXPath('//a[@class="question-hyperlink"]')->text());
@@ -30,7 +32,7 @@ final class SpiderStackOverflow extends BaseCrawler
         yield $url => 'first';
     }
 
-    public function first(\Symfony\Component\DomCrawler\Crawler $response)
+    public function first(Crawler $response)
     {
         printf("First method -- Title: %s \n\n", $response->filterXPath('//title')->text());
     }

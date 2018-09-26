@@ -15,7 +15,7 @@ abstract class BaseCrawler implements InterfaceCrawler
     /**
      * @var string
      */
-    protected $name = 'base_crawler';
+    protected $name = '';
 
     /**
      * For now, it is just one

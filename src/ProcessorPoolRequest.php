@@ -29,12 +29,14 @@ final class ProcessorPoolRequest
     /**
      * @var array
      */
-    private $configs = [
-        'concurrency' => 5
-    ];
+    private $configs
+        = [
+            'concurrency' => 5,
+        ];
 
     /**
      * Processor constructor.
+     *
      * @param BaseCrawler $spider
      */
     public function __construct(BaseCrawler $spider)
@@ -42,6 +44,9 @@ final class ProcessorPoolRequest
         $this->spider = $spider;
     }
 
+    /**
+     * Setting up request pool
+     */
     private function settingUp()
     {
         $this->configs = array_merge($this->configs, $this->spider->getConfigs());
@@ -51,50 +56,63 @@ final class ProcessorPoolRequest
         $this->pool = new Pool($this->client, $this->requestsPool(), [
             'concurrency' => $this->dynamicConcurrencyNumber(),
             'fulfilled' => $this->fullfilledRequest(),
-            'rejected' => $this->rejectedRequest()
+            'rejected' => $this->rejectedRequest(),
         ]);
     }
 
-    private function fullfilledRequest()
+    /**
+     * For now, it's dummy
+     *
+     * @return \Closure
+     */
+    private function fullfilledRequest(): callable
     {
         return function (Response $response, $i) {
             // dummy function
         };
     }
 
-    private function dynamicConcurrencyNumber()
+    /**
+     * A little hack to be able to add more urls to the pool using Guzzle
+     *
+     * @return \Closure
+     */
+    private function dynamicConcurrencyNumber(): callable
     {
-        return function() {
-            return max(
-                    1,
-                    min(
-                        count($this->spider->getUrls()), $this->configs['concurrency']
-                    ));
+        return function () {
+            return \max(
+                1,
+                \min(\count($this->spider->getUrls()), $this->configs['concurrency'])
+            );
         };
     }
 
-    private function rejectedRequest()
+    private function rejectedRequest(): callable
     {
         return function ($reason) {
-            printf("[ERROR] %s\n", $reason);
+            \printf("[ERROR] %s\n", $reason);
         };
     }
 
     private function requestsPool()
     {
-        foreach($this->spider->startUrls() as $url) {
-            printf("[LOG] Requesting %s\n", $url);
+        foreach ($this->spider->startUrls() as $url) {
+            \printf("[LOG] Requesting %s\n", $url);
 //            yield new Request('GET', $url);
-            yield function() use ($url) {
+            yield function () use ($url) {
                 return $this->client->getAsync($url)
                     ->then(function (Response $response) use ($url) {
                         // calling user function from here, because
                         // if I use the fullfilledRequest not all of them will be processed
-                        printf("[INFO] Calling Fulfilled #%s\n", $url);
+                        \printf("[INFO] Calling Fulfilled #%s\n", $url);
 
                         $urlObject = $this->spider->getCallbackRequest($url);
                         $currentUrl = \parse_url($url);
-                        $crawler = new Crawler(null, $currentUrl['path'], sprintf('%s://%s', $currentUrl['scheme'], $currentUrl['host']));
+                        $crawler = new Crawler(
+                            null,
+                            $currentUrl['path'],
+                            \sprintf('%s://%s', $currentUrl['scheme'], $currentUrl['host'])
+                        );
                         $crawler->addContent($response->getBody());
 
                         $reflection = new \ReflectionMethod($this->spider, $urlObject);
@@ -103,8 +121,9 @@ final class ProcessorPoolRequest
                             foreach ($reflection->invoke($this->spider, $crawler) as $url => $callback) {
                                 $this->spider->addNewUrl($url, $callback ?? 'parser');
                             }
-                        } else
+                        } else {
                             $reflection->invoke($this->spider, $crawler);
+                        }
 
                         return $response;
                     });
@@ -112,11 +131,14 @@ final class ProcessorPoolRequest
         }
     }
 
+    /**
+     * that is it
+     */
     public function run()
     {
         $this->settingUp();
-        $promise = $this->pool->promise();
-        $promise->wait();
+        $this->pool
+            ->promise()
+            ->wait();
     }
-
 }
