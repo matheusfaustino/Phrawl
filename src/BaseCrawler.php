@@ -2,41 +2,72 @@
 
 namespace Phpcrawler;
 
+use Phpcrawler\Interfaces\InterfaceCrawler;
 use Symfony\Component\DomCrawler\Crawler;
 
-abstract class BaseCrawler implements InterfaceCrawler, \Serializable
+/**
+ * Class BaseCrawler
+ *
+ * @package Phpcrawler
+ */
+abstract class BaseCrawler implements InterfaceCrawler
 {
+    /**
+     * @var string
+     */
     protected $name = 'base_crawler';
 
+    /**
+     * For now, it is just one
+     *
+     * @var array
+     */
     protected $configs = ['concurrency' => 5];
 
+    /**
+     * List of Urls or you can change the startUrls function
+     *
+     * @var array
+     */
     protected $start_urls = [];
 
+    /**
+     * @todo remove it
+     * @var array
+     */
     protected $copy_start_urls = [];
 
+    /**
+     * Returns the urls to the engine
+     *
+     * @return \Generator
+     */
     public function startUrls()
     {
         // (normalize)
-        $this->start_urls = array_map(function($i) { return [$i, 'parser']; }, $this->start_urls);
+        $this->start_urls = array_map(function ($i) {
+            return [$i, 'parser'];
+        }, $this->start_urls);
 
         //hard copy
-        foreach ($this->start_urls as $arr)
+        foreach ($this->start_urls as $arr) {
             $this->copy_start_urls[$arr[0]] = $arr[1];
+        }
 
         // remove from the beginning
-        while($url = array_shift($this->start_urls)) {
+        while ($url = array_shift($this->start_urls)) {
             printf("[LOG] Yielding %s\n", $url[0]);
 
             yield $url[0];
         }
     }
 
-    public function parser(Crawler $response) {
-        var_dump("========== Default Parser");
-        var_dump($response->getBaseHref());
-        var_dump($response->filterXPath('//title')->text());
-        var_dump("==========");
-    }
+    /**
+     * Default "parser"
+     *
+     * @param Crawler $response
+     */
+    abstract public function parser(Crawler $response);
 
     /**
      * @return array
@@ -48,6 +79,7 @@ abstract class BaseCrawler implements InterfaceCrawler, \Serializable
 
     /**
      * Add new Request to start urls
+     *
      * @param $url
      * @param $callback
      */
@@ -61,6 +93,7 @@ abstract class BaseCrawler implements InterfaceCrawler, \Serializable
 
     /**
      * @param $index
+     *
      * @return string
      */
     public function getCallbackRequest($index): string
@@ -74,26 +107,5 @@ abstract class BaseCrawler implements InterfaceCrawler, \Serializable
     public function getConfigs(): array
     {
         return $this->configs;
-    }
-
-    public function serialize(): string
-    {
-        return \serialize([
-            $this->name,
-            $this->configs,
-            $this->start_urls,
-            $this->copy_start_urls,
-        ]);
-    }
-
-    public function unserialize($serialized)
-    {
-        var_dump($serialized);
-        list(
-            $this->name,
-            $this->configs,
-            $this->start_urls,
-            $this->copy_start_urls
-        ) = \unserialize($serialized);
     }
 }

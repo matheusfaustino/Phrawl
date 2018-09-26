@@ -1,7 +1,6 @@
 <?php
 
-namespace Phpcrawler;
-
+namespace Phpcrawler\Interfaces;
 
 interface InterfaceCrawler
 {
