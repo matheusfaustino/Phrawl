@@ -4,7 +4,7 @@ namespace Phpcrawler;
 
 use Symfony\Component\DomCrawler\Crawler;
 
-abstract class BaseCrawler implements InterfaceCrawler
+abstract class BaseCrawler implements InterfaceCrawler, \Serializable
 {
     protected $name = 'base_crawler';
 
@@ -74,5 +74,26 @@ abstract class BaseCrawler implements InterfaceCrawler
     public function getConfigs(): array
     {
         return $this->configs;
+    }
+
+    public function serialize(): string
+    {
+        return \serialize([
+            $this->name,
+            $this->configs,
+            $this->start_urls,
+            $this->copy_start_urls,
+        ]);
+    }
+
+    public function unserialize($serialized)
+    {
+        var_dump($serialized);
+        list(
+            $this->name,
+            $this->configs,
+            $this->start_urls,
+            $this->copy_start_urls
+        ) = \unserialize($serialized);
     }
 }

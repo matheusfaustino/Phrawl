@@ -1,11 +1,12 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
 
-class SpiderStackOverflow extends \Phpcrawler\BaseCrawler
+namespace Phpcrawler;
+
+final class SpiderStackOverflow extends BaseCrawler
 {
     protected $name = 'stackoverflow';
 
-    protected $configs = ['concurrency' => 3];
+    protected $configs = ['concurrency' => 10];
 
     public $start_urls = [
         'https://stackoverflow.com/questions/10720325/selenium-webdriver-wait-for-complex-page-with-javascriptjs-to-load',
@@ -31,5 +32,3 @@ class SpiderStackOverflow extends \Phpcrawler\BaseCrawler
         printf("First method -- Title: %s \n\n", $response->filterXPath('//title')->text());
     }
 }
-
-(new \Phpcrawler\ProcessorPoolRequest(new SpiderStackOverflow()))->run();
