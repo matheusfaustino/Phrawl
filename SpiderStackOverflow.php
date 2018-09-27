@@ -2,6 +2,7 @@
 
 use Phpcrawler\BaseCrawler;
 use Phpcrawler\ProcessorPoolRequest;
+use Phpcrawler\Request;
 use Symfony\Component\DomCrawler\Crawler;
 
 require __DIR__.'/vendor/autoload.php';
@@ -29,7 +30,7 @@ final class SpiderStackOverflow extends BaseCrawler
         $url = $response->evaluate('//div[contains(@class, "module")]/div/div/a[@class="question-hyperlink"]')->first();
         $url = $url->getBaseHref().$url->attr('href');
 
-        yield $url => 'first';
+        yield new Request($url, 'first');
     }
 
     public function first(Crawler $response)

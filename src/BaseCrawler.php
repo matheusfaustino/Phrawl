@@ -32,33 +32,22 @@ abstract class BaseCrawler implements InterfaceCrawler
     protected $start_urls = [];
 
     /**
-     * @todo remove it
-     * @var array
-     */
-    protected $copy_start_urls = [];
-
-    /**
      * Returns the urls to the engine
      *
-     * @return \Generator
+     * @return \Generator|Request[]
      */
     public function startUrls()
     {
         // (normalize)
-        $this->start_urls = array_map(function ($i) {
-            return [$i, 'parser'];
+        $this->start_urls = array_map(function ($url) {
+            return new Request($url);
         }, $this->start_urls);
 
-        //hard copy
-        foreach ($this->start_urls as $arr) {
-            $this->copy_start_urls[$arr[0]] = $arr[1];
-        }
-
         // remove from the beginning
-        while ($url = array_shift($this->start_urls)) {
-            printf("[LOG] Yielding %s\n", $url[0]);
+        while ($request = array_shift($this->start_urls)) {
+            printf("[LOG] Yielding %s\n", $request);
 
-            yield $url[0];
+            yield $request;
         }
     }
 
@@ -80,25 +69,13 @@ abstract class BaseCrawler implements InterfaceCrawler
     /**
      * Add new Request to start urls
      *
-     * @param $url
-     * @param $callback
+     * @param Request $request
      */
-    public function addNewUrl($url, $callback)
+    public function addNewUrl(Request $request)
     {
-        printf("[LOG] Added URL %s\n", $url);
+        printf("[LOG] Added URL %s\n", $request);
 
-        $this->start_urls[] = [$url, $callback];
-        $this->copy_start_urls[$url] = $callback;
-    }
-
-    /**
-     * @param $index
-     *
-     * @return string
-     */
-    public function getCallbackRequest($index): string
-    {
-        return $this->copy_start_urls[$index];
+        $this->start_urls[] = $request;
     }
 
     /**

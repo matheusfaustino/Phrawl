@@ -1,49 +1,87 @@
 <?php
+
 namespace Phpcrawler;
 
-
+/**
+ * Class Request
+ *
+ * @package Phpcrawler
+ */
 class Request
 {
     /**
      * @var string
      */
-    protected $method = 'GET';
-
+    protected $method;
     /**
      * @var string
      */
     protected $url;
 
     /**
-     * @var array
-     */
-    protected $headers = [];
-
-    /**
-     * @var string
-     */
-    protected $body = null;
-
-    /**
-     * @var null
+     * @var string|array|callable
      */
     protected $callback;
 
     /**
      * Request constructor.
-     * @param string $method
+     *
      * @param string $url
-     * @param callable $callback
+     * @param null   $callback
+     * @param string $method
+     * @param array  $meta
      */
-    public function __construct($method, $url, callable $callback)
+    public function __construct(string $url, $callback = null, string $method = 'GET', array $meta = [])
     {
         $this->method = $method;
         $this->url = $url;
         $this->callback = $callback;
+        $this->meta = $meta;
     }
 
+    /**
+     * Extra parameters
+     *
+     * @var array
+     */
+    protected $meta;
+
+    /**
+     * @todo need other HTTP Methods support
+     *
+     * @return \GuzzleHttp\Psr7\Request
+     */
     public function getRequest(): \GuzzleHttp\Psr7\Request
     {
-        return new \GuzzleHttp\Psr7\Request($this->method, $this->url, $this->headers, $this->body);
+        return new \GuzzleHttp\Psr7\Request($this->method, $this->url);
+    }
+
+    /**
+     * @return array|callable|string
+     */
+    public function getCallback()
+    {
+        return $this->callback;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMeta(): array
+    {
+        return $this->meta;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
+
+    public function __toString()
+    {
+        return \sprintf('%s %s', \strtoupper($this->method), $this->url);
     }
 }

@@ -9,7 +9,7 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Symfony\Component\DomCrawler\Crawler;
 
-final class ProcessorPoolRequest
+class ProcessorPoolRequest
 {
     /**
      * @var BaseCrawler
@@ -96,18 +96,17 @@ final class ProcessorPoolRequest
 
     private function requestsPool()
     {
-        foreach ($this->spider->startUrls() as $url) {
-            \printf("[LOG] Requesting %s\n", $url);
-//            yield new Request('GET', $url);
-            yield function () use ($url) {
-                return $this->client->getAsync($url)
-                    ->then(function (Response $response) use ($url) {
+        foreach ($this->spider->startUrls() as $request) {
+            \printf("[LOG] Requesting %s\n", $request->getUrl());
+
+            yield function () use ($request) {
+                return $this->client->sendAsync($request->getRequest())
+                    ->then(function (Response $response) use ($request) {
                         // calling user function from here, because
                         // if I use the fullfilledRequest not all of them will be processed
-                        \printf("[INFO] Calling Fulfilled #%s\n", $url);
+                        \printf("[INFO] Calling Fulfilled #%s\n", $request);
 
-                        $urlObject = $this->spider->getCallbackRequest($url);
-                        $currentUrl = \parse_url($url);
+                        $currentUrl = \parse_url($request->getUrl());
                         $crawler = new Crawler(
                             null,
                             $currentUrl['path'],
@@ -115,15 +114,30 @@ final class ProcessorPoolRequest
                         );
                         $crawler->addContent($response->getBody());
 
-                        $reflection = new \ReflectionMethod($this->spider, $urlObject);
+                        $callback = $request->getCallback();
+                        if ($callback instanceof \Closure) {
+                            $reflection = new \ReflectionFunction($callback);
+                        } else {
+                            $reflection = new \ReflectionMethod(
+                                \is_array($callback) ? $callback[0] : $this->spider,
+                                $callback ?? 'parser'
+                            );
+                        }
 
                         if ($reflection->isGenerator()) {
-                            foreach ($reflection->invoke($this->spider, $crawler) as $url => $callback) {
-                                $this->spider->addNewUrl($url, $callback ?? 'parser');
+                            foreach ($reflection->invoke($this->spider, $crawler) as $yieldedValue) {
+                                if ($yieldedValue instanceof \Phpcrawler\Request) {
+                                    $this->spider->addNewUrl($yieldedValue);
+
+                                    continue;
+                                }
+                                // @todo implement more ways
                             }
-                        } else {
-                            $reflection->invoke($this->spider, $crawler);
+
+                            return $response;
                         }
+
+                        $reflection->invoke($this->spider, $crawler);
 
                         return $response;
                     });
