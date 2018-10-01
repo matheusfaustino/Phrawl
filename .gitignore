@@ -76,4 +76,5 @@ fabric.properties
 composer.lock
 *.php
 *.log
+*.csv
 !/src/**
