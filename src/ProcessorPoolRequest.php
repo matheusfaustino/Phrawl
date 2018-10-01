@@ -4,12 +4,29 @@ namespace Phpcrawler;
 
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Handler\CurlHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\MessageFormatter;
+use GuzzleHttp\Middleware;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\RequestOptions;
+use GuzzleHttp\TransferStats;
+use Monolog\Handler\ErrorLogHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Phpcrawler\Handlers\RetryRequest;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
-class ProcessorPoolRequest
+/**
+ * Class ProcessorPoolRequest
+ *
+ * @package Phpcrawler
+ */
+class ProcessorPoolRequest implements LoggerAwareInterface
 {
     /**
      * @var BaseCrawler
@@ -27,6 +44,47 @@ class ProcessorPoolRequest
     private $pool;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var int
+     */
+    private $defaultLoggerLevel = Logger::WARNING;
+
+    /**
+     * @todo improve this
+     * @var int
+     */
+    private $retryDelay = 5;
+
+    /**
+     * @todo improve it
+     * @var int
+     */
+    private $defaultDelay = 0;
+
+    /**
+     * @var int
+     */
+    private $defaulTimeout = 10;
+
+    /**
+     * @var array
+     */
+    private $history = [];
+
+    private $generalStats
+        = [
+            'download_content_length' => 0,
+            'starttransfer_time' => 0,
+            'size_download' => 0,
+            'redirects_count' => 0,
+            'total_time' => 0,
+        ];
+
+    /**
      * @var array
      */
     private $configs
@@ -37,22 +95,60 @@ class ProcessorPoolRequest
     /**
      * Processor constructor.
      *
-     * @param BaseCrawler $spider
+     * @param BaseCrawler     $spider
+     * @param LoggerInterface $logger
      */
-    public function __construct(BaseCrawler $spider)
-    {
+    public function __construct(
+        BaseCrawler $spider,
+        LoggerInterface $logger = null
+    ) {
         $this->spider = $spider;
+        $this->logger = $logger ?? new Logger($this->spider->name);
+        $this->client = new Client([
+            'handler' => $this->setupStackClient(),
+            RequestOptions::DELAY => $this->defaultDelay * 1000,
+            RequestOptions::TIMEOUT => $this->defaulTimeout,
+            RequestOptions::ON_STATS => function (TransferStats $stats) {
+                $this->generalStats['download_content_length'] += $stats->getHandlerStat('download_content_length');
+                $this->generalStats['starttransfer_time'] += $stats->getHandlerStat('starttransfer_time');
+                $this->generalStats['size_download'] += $stats->getHandlerStat('size_download');
+                $this->generalStats['redirects_count'] += $stats->getHandlerStat('redirect_count');
+                $this->generalStats['total_time'] += $stats->getHandlerStat('total_time');
+            },
+        ]);
+    }
+
+    /**
+     * @todo improve this
+     * @return HandlerStack
+     */
+    private function setupStackClient(): HandlerStack
+    {
+        $stack = HandlerStack::create(new CurlHandler());
+        $stack->push(
+            Middleware::retry((new RetryRequest($this->logger))->retry()),
+            $this->retryDelay
+        );
+        $stack->push(Middleware::history($this->history));
+
+        return $stack;
     }
 
     /**
      * Setting up request pool
+     *
+     * @throws \Exception
      */
     private function settingUp()
     {
-        $this->configs = array_merge($this->configs, $this->spider->getConfigs());
+        $this->logger->pushHandler(new StreamHandler(
+            $this->spider->name.'.log',
+            $this->defaultLoggerLevel
+        ));
+        $this->logger->pushHandler(new ErrorLogHandler(null, $this->defaultLoggerLevel));
+        $this->logger->info('Setting up');
 
-        $this->client = new Client();
-
+        $this->configs = \array_merge($this->configs, $this->spider->getConfigs());
         $this->pool = new Pool($this->client, $this->requestsPool(), [
             'concurrency' => $this->dynamicConcurrencyNumber(),
             'fulfilled' => $this->fullfilledRequest(),
@@ -87,24 +183,30 @@ class ProcessorPoolRequest
         };
     }
 
+    /**
+     * @return callable
+     */
     private function rejectedRequest(): callable
     {
         return function ($reason) {
-            \printf("[ERROR] %s\n", $reason);
+            $this->logger->err($reason);
         };
     }
 
+    /**
+     * @return \Generator
+     */
     private function requestsPool()
     {
         foreach ($this->spider->startUrls() as $request) {
-            \printf("[LOG] Requesting %s\n", $request->getUrl());
+            $this->logger->info(\sprintf("Requesting %s\n", $request->getUrl()));
 
             yield function () use ($request) {
                 return $this->client->sendAsync($request->getRequest())
                     ->then(function (Response $response) use ($request) {
                         // calling user function from here, because
                         // if I use the fullfilledRequest not all of them will be processed
-                        \printf("[INFO] Calling Fulfilled #%s\n", $request);
+                        $this->logger->info(\sprintf("Calling Fulfilled #%s\n", $request));
 
                         $currentUrl = \parse_url($request->getUrl());
                         $crawler = new Crawler(
@@ -127,6 +229,7 @@ class ProcessorPoolRequest
                         if ($reflection->isGenerator()) {
                             foreach ($reflection->invoke($this->spider, $crawler) as $yieldedValue) {
                                 if ($yieldedValue instanceof \Phpcrawler\Request) {
+                                    $this->logger->info(\sprintf("Adding new URL %s\n", $yieldedValue->getUrl()));
                                     $this->spider->addNewUrl($yieldedValue);
 
                                     continue;
@@ -147,6 +250,8 @@ class ProcessorPoolRequest
 
     /**
      * that is it
+     *
+     * @throws \Exception
      */
     public function run()
     {
@@ -154,5 +259,33 @@ class ProcessorPoolRequest
         $this->pool
             ->promise()
             ->wait();
+
+        $this->logger->info(\json_encode($this->generalStats + ['total_request' => \count($this->history)]));
+    }
+
+    /**
+     * Sets a logger instance on the object.
+     *
+     * @param LoggerInterface $logger
+     *
+     * @return ProcessorPoolRequest
+     */
+    public function setLogger(LoggerInterface $logger): ProcessorPoolRequest
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
+     * @param int $defaultLoggerLevel
+     *
+     * @return ProcessorPoolRequest
+     */
+    public function setDefaultLoggerLevel(int $defaultLoggerLevel): ProcessorPoolRequest
+    {
+        $this->defaultLoggerLevel = $defaultLoggerLevel;
+
+        return $this;
     }
 }

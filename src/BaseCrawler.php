@@ -15,7 +15,7 @@ abstract class BaseCrawler implements InterfaceCrawler
     /**
      * @var string
      */
-    protected $name = '';
+    public $name = 'default_name';
 
     /**
      * For now, it is just one
@@ -34,19 +34,19 @@ abstract class BaseCrawler implements InterfaceCrawler
     /**
      * Returns the urls to the engine
      *
+     * @todo define possible yielded type
+     *
      * @return \Generator|Request[]
      */
     public function startUrls()
     {
-        // (normalize)
+        // normalize value
         $this->start_urls = array_map(function ($url) {
             return new Request($url);
         }, $this->start_urls);
 
         // remove from the beginning
         while ($request = array_shift($this->start_urls)) {
-            printf("[LOG] Yielding %s\n", $request);
-
             yield $request;
         }
     }
@@ -73,8 +73,6 @@ abstract class BaseCrawler implements InterfaceCrawler
      */
     public function addNewUrl(Request $request)
     {
-        printf("[LOG] Added URL %s\n", $request);
-
         $this->start_urls[] = $request;
     }
 
