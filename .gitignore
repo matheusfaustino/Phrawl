@@ -77,4 +77,5 @@ composer.lock
 *.php
 *.log
 *.csv
+*.txt
 !/src/**
