@@ -19,6 +19,11 @@ class Request
     protected $url;
 
     /**
+     * @var array
+     */
+    protected $headers;
+
+    /**
      * @var string|array|callable
      */
     protected $callback;
@@ -29,13 +34,20 @@ class Request
      * @param string $url
      * @param null   $callback
      * @param string $method
+     * @param array  $headers
      * @param array  $meta
      */
-    public function __construct(string $url, $callback = null, string $method = 'GET', array $meta = [])
-    {
+    public function __construct(
+        string $url,
+        $callback = null,
+        string $method = 'GET',
+        array $headers = [],
+        array $meta = []
+    ) {
         $this->method = $method;
         $this->url = $url;
         $this->callback = $callback;
+        $this->headers = $headers;
         $this->meta = $meta;
     }
 
@@ -53,7 +65,7 @@ class Request
      */
     public function getRequest(): \GuzzleHttp\Psr7\Request
     {
-        return new \GuzzleHttp\Psr7\Request($this->method, $this->url);
+        return new \GuzzleHttp\Psr7\Request($this->method, $this->url, $this->headers);
     }
 
     /**
@@ -83,5 +95,13 @@ class Request
     public function __toString()
     {
         return \sprintf('%s %s', \strtoupper($this->method), $this->url);
+    }
+
+    /**
+     * @return array
+     */
+    public function getHeaders(): array
+    {
+        return $this->headers;
     }
 }
