@@ -1,5 +1,24 @@
 {
+  "version": "dev-master",
+  "name": "matheusfaustino/phpcrawler_alpha",
+  "description": "Not ready yet",
+  "readme": "README.md",
+  "type": "library",
+  "authors": [
+    {
+      "name": "Matheus Faustino",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/matheusfaustino/phpcrawler_alpha/issues"
+  },
+  "keywords": [
+    "crawler"
+  ],
   "require": {
+    "php": "^7.2",
+    "ext-json": "*",
     "guzzlehttp/guzzle": "~6.0",
     "fabpot/goutte": "^3.2",
     "monolog/monolog": "^1.23"
@@ -8,5 +27,12 @@
     "psr-4": {
       "Phpcrawler\\": "./src"
     }
+  },
+  "config": {
+    "platform": {
+      "php": "7.2"
+    },
+    "optimize-autoloader": true,
+    "sort-packages": true
   }
 }
