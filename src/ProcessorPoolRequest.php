@@ -226,8 +226,9 @@ class ProcessorPoolRequest implements LoggerAwareInterface
                             );
                         }
 
+                        $responseBag = new \Phpcrawler\Response($crawler, $response, $request->getRequest());
                         if ($reflection->isGenerator()) {
-                            foreach ($reflection->invoke($this->spider, $crawler) as $yieldedValue) {
+                            foreach ($reflection->invoke($this->spider, $responseBag) as $yieldedValue) {
                                 if ($yieldedValue instanceof \Phpcrawler\Request) {
                                     $this->logger->info(\sprintf("Adding new URL %s\n", $yieldedValue->getUrl()));
                                     $this->spider->addNewUrl($yieldedValue);
@@ -240,7 +241,7 @@ class ProcessorPoolRequest implements LoggerAwareInterface
                             return $response;
                         }
 
-                        $reflection->invoke($this->spider, $crawler);
+                        $reflection->invoke($this->spider, $responseBag);
 
                         return $response;
                     });

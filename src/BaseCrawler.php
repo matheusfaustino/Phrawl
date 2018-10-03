@@ -3,7 +3,6 @@
 namespace Phpcrawler;
 
 use Phpcrawler\Interfaces\InterfaceCrawler;
-use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * Class BaseCrawler
@@ -54,9 +53,9 @@ abstract class BaseCrawler implements InterfaceCrawler
     /**
      * Default "parser"
      *
-     * @param Crawler $response
+     * @param Response $response
      */
-    abstract public function parser(Crawler $response);
+    abstract public function parser(Response $response);
 
     /**
      * @return array
