@@ -226,7 +226,7 @@ class ProcessorPoolRequest implements LoggerAwareInterface
                             );
                         }
 
-                        $responseBag = new \Phpcrawler\Response($crawler, $response, $request->getRequest());
+                        $responseBag = new \Phpcrawler\Response($crawler, $response, $request);
                         if ($reflection->isGenerator()) {
                             foreach ($reflection->invoke($this->spider, $responseBag) as $yieldedValue) {
                                 if ($yieldedValue instanceof \Phpcrawler\Request) {

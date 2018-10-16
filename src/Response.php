@@ -3,7 +3,7 @@
 namespace Phpcrawler;
 
 use Symfony\Component\DomCrawler\Crawler;
-use GuzzleHttp\Psr7\Request;
+use Phpcrawler\Request;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 
 /**
@@ -64,5 +64,17 @@ class Response
     public function getRequest(): Request
     {
         return $this->request;
+    }
+
+    /**
+     * Returns data persisted through request
+     *
+     * @todo I don't know if this is the right way
+     *
+     * @return array
+     */
+    public function getMetaData(): array
+    {
+        $this->request->getMeta();
     }
 }
