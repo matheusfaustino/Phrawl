@@ -75,6 +75,6 @@ class Response
      */
     public function getMetaData(): array
     {
-        $this->request->getMeta();
+        return $this->request->getMeta();
     }
 }
