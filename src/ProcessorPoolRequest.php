@@ -1,6 +1,6 @@
 <?php
 
-namespace Phpcrawler;
+namespace Phrawl;
 
 
 use GuzzleHttp\Client;
@@ -16,7 +16,7 @@ use GuzzleHttp\TransferStats;
 use Monolog\Handler\ErrorLogHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use Phpcrawler\Handlers\RetryRequest;
+use Phrawl\Handlers\RetryRequest;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DomCrawler\Crawler;
@@ -24,7 +24,7 @@ use Symfony\Component\DomCrawler\Crawler;
 /**
  * Class ProcessorPoolRequest
  *
- * @package Phpcrawler
+ * @package Phrawl
  */
 class ProcessorPoolRequest implements LoggerAwareInterface
 {
@@ -226,10 +226,10 @@ class ProcessorPoolRequest implements LoggerAwareInterface
                             );
                         }
 
-                        $responseBag = new \Phpcrawler\Response($crawler, $response, $request);
+                        $responseBag = new \Phrawl\Response($crawler, $response, $request);
                         if ($reflection->isGenerator()) {
                             foreach ($reflection->invoke($this->spider, $responseBag) as $yieldedValue) {
-                                if ($yieldedValue instanceof \Phpcrawler\Request) {
+                                if ($yieldedValue instanceof \Phrawl\Request) {
                                     $this->logger->info(\sprintf("Adding new URL %s\n", $yieldedValue->getUrl()));
                                     $this->spider->addNewUrl($yieldedValue);
 

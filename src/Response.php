@@ -1,15 +1,15 @@
 <?php
 
-namespace Phpcrawler;
+namespace Phrawl;
 
 use Symfony\Component\DomCrawler\Crawler;
-use Phpcrawler\Request;
+use Phrawl\Request;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 
 /**
  * Class Response
  *
- * @package Phpcrawler
+ * @package Phrawl
  */
 class Response
 {

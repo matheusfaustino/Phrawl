@@ -1,13 +1,13 @@
 <?php
 
-namespace Phpcrawler;
+namespace Phrawl;
 
-use Phpcrawler\Interfaces\InterfaceCrawler;
+use Phrawl\Interfaces\InterfaceCrawler;
 
 /**
  * Class BaseCrawler
  *
- * @package Phpcrawler
+ * @package Phrawl
  */
 abstract class BaseCrawler implements InterfaceCrawler
 {

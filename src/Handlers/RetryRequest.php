@@ -1,6 +1,6 @@
 <?php
 
-namespace Phpcrawler\Handlers;
+namespace Phrawl\Handlers;
 
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;

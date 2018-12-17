@@ -1,13 +1,13 @@
 <?php
 
-namespace Phpcrawler;
+namespace Phrawl;
 
 use Psr\Http\Message\StreamInterface;
 
 /**
  * Class Request
  *
- * @package Phpcrawler
+ * @package Phrawl
  */
 class Request
 {
