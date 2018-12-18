@@ -1,0 +1,39 @@
+#!/usr/bin/env php
+<?php
+
+use Phrawl\BaseCrawler;
+use Phrawl\ProcessorPoolRequest;
+
+/* @see https://github.com/sebastianbergmann/phpunit/blob/master/phpunit */
+foreach ([__DIR__.'/../../autoload.php', __DIR__.'/../vendor/autoload.php', __DIR__.'/vendor/autoload.php'] as $file) {
+    if (file_exists($file)) {
+        define('PHRAWL_COMPOSER_INSTALL', $file);
+        break;
+    }
+}
+
+require PHRAWL_COMPOSER_INSTALL;
+
+// read line
+$line = '';
+while ($f = fgets(STDIN)) {
+    $line .= $f;
+}
+
+/* this really works, I tried BetterReflection but it was way too complicated and did't work well */
+$old = get_declared_classes();
+$tmp = tmpfile();
+file_put_contents(stream_get_meta_data($tmp)['uri'], $line);
+require stream_get_meta_data($tmp)['uri'];
+$new = get_declared_classes();
+$diff = array_diff($new, $old);
+
+foreach ($diff as $className) {
+    if ($className === BaseCrawler::class) {
+        continue;
+    }
+
+    (new ProcessorPoolRequest(new $className))
+        ->setDefaultLoggerLevel(\Monolog\Logger::INFO)
+        ->run();
+}

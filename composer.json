@@ -1,7 +1,7 @@
 {
   "version": "dev-master",
-  "name": "matheusfaustino/phpcrawler_alpha",
-  "description": "Not ready yet",
+  "name": "matheusfaustino/Phrawl",
+  "description": "A web crawling framework in PHP ",
   "readme": "README.md",
   "type": "library",
   "authors": [
@@ -11,16 +11,21 @@
     }
   ],
   "support": {
-    "issues": "https://github.com/matheusfaustino/phpcrawler_alpha/issues"
+    "issues": "https://github.com/matheusfaustino/Phrawl/issues"
   },
   "keywords": [
-    "crawler"
+    "crawler",
+    "php",
+    "crawling",
+    "wip",
+    "crawling-framework",
+    "scraper"
   ],
   "require": {
     "php": "^7.2",
     "ext-json": "*",
-    "guzzlehttp/guzzle": "~6.0",
     "fabpot/goutte": "^3.2",
+    "guzzlehttp/guzzle": "~6.0",
     "monolog/monolog": "^1.23"
   },
   "autoload": {
@@ -28,11 +33,15 @@
       "Phrawl\\": "./src"
     }
   },
+  "prefer-stable": true,
   "config": {
     "platform": {
       "php": "7.2"
     },
     "optimize-autoloader": true,
     "sort-packages": true
-  }
+  },
+  "bin": [
+    "phrawl"
+  ]
 }
