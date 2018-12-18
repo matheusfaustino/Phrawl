@@ -17,9 +17,11 @@ require PHRAWL_COMPOSER_INSTALL;
 $line = '';
 $isInlineClass = $argc === 1;
 if ($isInlineClass) {
+    /* @see https://stackoverflow.com/a/36494376/3618650 */
     $read = [STDIN];
     $write = $except = null;
     if (stream_select($read, $write, $except, 0) === 0) {
+        /* @todo add a better help message */
         print 'You should pass a inline class as string or a file path to the script'.PHP_EOL;
         exit(1);
     }
