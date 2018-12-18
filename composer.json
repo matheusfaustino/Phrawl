@@ -1,6 +1,6 @@
 {
   "version": "dev-master",
-  "name": "matheusfaustino/Phrawl",
+  "name": "matheusfaustino/phrawl",
   "description": "A web crawling framework in PHP ",
   "readme": "README.md",
   "type": "library",
