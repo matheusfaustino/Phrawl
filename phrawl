@@ -20,7 +20,7 @@ while ($f = fgets(STDIN)) {
     $line .= $f;
 }
 
-/* this really works, I tried BetterReflection but it was way too complicated and did't work well */
+/* this really works, I tried BetterReflection but it was way too complicated and did't work well (thanks Leandro ^^) */
 $old = get_declared_classes();
 $tmp = tmpfile();
 file_put_contents(stream_get_meta_data($tmp)['uri'], $line);
