@@ -14,17 +14,43 @@ foreach ([__DIR__.'/../../autoload.php', __DIR__.'/../vendor/autoload.php', __DI
 
 require PHRAWL_COMPOSER_INSTALL;
 
-// read line
 $line = '';
-while ($f = fgets(STDIN)) {
-    $line .= $f;
+$isInlineClass = $argc === 1;
+if ($isInlineClass) {
+    $read = [STDIN];
+    $write = $except = null;
+    if (stream_select($read, $write, $except, 0) === 0) {
+        print 'You should pass a inline class as string or a file path to the script'.PHP_EOL;
+        exit(1);
+    }
+
+    // read all line
+    while ($f = fgets(STDIN)) {
+        $line .= $f;
+    }
+} else {
+    $line = $argv[1];
 }
 
-/* this really works, I tried BetterReflection but it was way too complicated and did't work well (thanks Leandro ^^) */
+/* this really works, I tried BetterReflection but it was way too complicated and didn't work well (thanks Leandro ^^) - I'll probably try another way but for now, that is it */
 $old = get_declared_classes();
-$tmp = tmpfile();
-file_put_contents(stream_get_meta_data($tmp)['uri'], $line);
-require stream_get_meta_data($tmp)['uri'];
+
+$filePath = '';
+if ($isInlineClass) { // it's a string of a classe
+    $tmp = tmpfile();
+    file_put_contents(stream_get_meta_data($tmp)['uri'], $line);
+    $filePath = stream_get_meta_data($tmp)['uri'];
+}
+
+if ($isInlineClass === false) { // it's a file name
+    $filePath = realpath($line);
+    if ($filePath === false) {
+        throw new \Exception('File not found');
+    }
+}
+
+require $filePath;
+
 $new = get_declared_classes();
 $diff = array_diff($new, $old);
 
