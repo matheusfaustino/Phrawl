@@ -74,7 +74,6 @@ fabric.properties
 
 # End of https://www.gitignore.io/api/composer,phpstorm
 composer.lock
-*.php
 *.log
 *.csv
 *.txt
