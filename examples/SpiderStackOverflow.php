@@ -40,6 +40,7 @@ final class SpiderStackOverflow extends BaseCrawler
     }
 }
 
-(new ProcessorPoolRequest(new SpiderStackOverflow()))
-    ->setDefaultLoggerLevel(\Monolog\Logger::INFO)
-    ->run();
+// To run as a standalone script:
+//(new ProcessorPoolRequest(new SpiderStackOverflow()))
+//    ->setDefaultLoggerLevel(\Monolog\Logger::INFO)
+//    ->run();
