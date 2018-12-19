@@ -204,6 +204,12 @@ class ProcessorPoolRequest implements LoggerAwareInterface
             yield function () use ($request) {
                 return $this->client->sendAsync($request->getRequest(), $request->getOptions())
                     ->then(function (Response $response) use ($request) {
+                        // if saveTo was used, no need for the "then" function
+                        // for now, if option has an item, then it is the saveTo param
+                        if (count($request->getOptions()) === 1) {
+                            return $response;
+                        }
+
                         // calling user function from here, because
                         // if I use the fullfilledRequest not all of them will be processed
                         $this->logger->info(\sprintf("Calling Fulfilled #%s\n", $request));
