@@ -202,7 +202,7 @@ class ProcessorPoolRequest implements LoggerAwareInterface
             $this->logger->info(\sprintf("Requesting %s\n", $request->getUrl()));
 
             yield function () use ($request) {
-                return $this->client->sendAsync($request->getRequest())
+                return $this->client->sendAsync($request->getRequest(), $request->getOptions())
                     ->then(function (Response $response) use ($request) {
                         // calling user function from here, because
                         // if I use the fullfilledRequest not all of them will be processed

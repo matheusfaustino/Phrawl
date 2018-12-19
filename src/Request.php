@@ -43,6 +43,11 @@ class Request
     protected $meta;
 
     /**
+     * @var string
+     */
+    private $saveTo;
+
+    /**
      * Request constructor.
      *
      * @param string $url
@@ -181,5 +186,31 @@ class Request
         $this->meta = $meta;
 
         return $this;
+    }
+
+    /**
+     * @param string|resource|StreamInterface $saveTo
+     *
+     * @return Request
+     */
+    public function setSaveTo($saveTo): Request
+    {
+        $this->saveTo = $saveTo;
+
+        return $this;
+    }
+
+    /**
+     * @see http://docs.guzzlephp.org/en/stable/request-options.html#sink
+     * @return array
+     */
+    public function getOptions(): array
+    {
+        $arr = [];
+        if ($this->saveTo) {
+            $arr['sink'] = $this->saveTo;
+        }
+
+        return $arr;
     }
 }
