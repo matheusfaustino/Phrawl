@@ -36,6 +36,13 @@ class Request
     protected $callback;
 
     /**
+     * Extra parameters
+     *
+     * @var array
+     */
+    protected $meta;
+
+    /**
      * Request constructor.
      *
      * @param string $url
@@ -60,13 +67,6 @@ class Request
         $this->body = $body;
         $this->meta = $meta;
     }
-
-    /**
-     * Extra parameters
-     *
-     * @var array
-     */
-    protected $meta;
 
     /**
      * @todo need other HTTP Methods support
@@ -113,5 +113,73 @@ class Request
     public function getHeaders(): array
     {
         return $this->headers;
+    }
+
+    /**
+     * @param string $method
+     *
+     * @return Request
+     */
+    public function setMethod(string $method): Request
+    {
+        $this->method = $method;
+
+        return $this;
+    }
+
+    /**
+     * @param string $url
+     */
+    public function setUrl(string $url): void
+    {
+        $this->url = $url;
+    }
+
+    /**
+     * @param array $headers
+     *
+     * @return Request
+     */
+    public function setHeaders(array $headers): Request
+    {
+        $this->headers = $headers;
+
+        return $this;
+    }
+
+    /**
+     * @param null|StreamInterface|resource|string $body
+     *
+     * @return Request
+     */
+    public function setBody($body)
+    {
+        $this->body = $body;
+
+        return $this;
+    }
+
+    /**
+     * @param array|callable|string $callback
+     *
+     * @return Request
+     */
+    public function setCallback($callback)
+    {
+        $this->callback = $callback;
+
+        return $this;
+    }
+
+    /**
+     * @param array $meta
+     *
+     * @return Request
+     */
+    public function setMeta(array $meta): Request
+    {
+        $this->meta = $meta;
+
+        return $this;
     }
 }
