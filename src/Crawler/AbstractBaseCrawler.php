@@ -4,6 +4,7 @@ namespace Phrawl\Crawler;
 
 use Phrawl\Queue\MemoryQueue;
 use Phrawl\Queue\QueueInterface;
+use Phrawl\Request\Types\RequestInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -28,11 +29,13 @@ abstract class AbstractBaseCrawler implements CrawlerInterface
     public $name = 'Crawler';
 
     /**
-     * @param Crawler $crawler
+     * @param Crawler          $crawler
+     *
+     * @param RequestInterface $request
      *
      * @return \Generator|void
      */
-    abstract public function parser(Crawler $crawler);
+    abstract public function parser(Crawler $crawler, RequestInterface $request);
 
     /**
      * Initial url to start the crawling

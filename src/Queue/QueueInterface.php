@@ -12,9 +12,9 @@ interface QueueInterface
     /**
      * Add Item to the queue
      *
-     * @param string $url
+     * @param $url
      */
-    public function addItem(string $url): void;
+    public function addItem($url): void;
 
     /**
      * Count the list of URLs from the queue
