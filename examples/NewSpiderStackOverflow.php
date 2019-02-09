@@ -32,11 +32,15 @@ final class NewSpiderStackOverflow extends AbstractBaseCrawler
 //            print $crawler->filter('title')->text().PHP_EOL;
 
 //        foreach ($crawler->filter('.sidebar-related .question-hyperlink')->links() as $link) {
-        yield RequestFactory::new('GET',
-            'https://stackoverflow.com/questions/23050430/does-selenium-wait-for-javascript-to-complete', [], null,
+        yield RequestFactory::newWebDriver('GET',
+            'https://stackoverflow.com/questions/9291898/selenium-wait-for-javascript-function-to-execute-before-continuing',
+            [], null,
             [$this, 'dynamic']);
         yield RequestFactory::newWebDriver('GET',
             'https://stackoverflow.com/questions/5355121/passing-dict-to-constructor/5355152#5355152', [], null,
+            [$this, 'dynamic']);
+        yield RequestFactory::newWebDriver('GET',
+            'https://stackoverflow.com/questions/835501/how-do-you-stash-an-untracked-file', [], null,
             [$this, 'dynamic']);
 //        }
 //        }
@@ -46,8 +50,8 @@ final class NewSpiderStackOverflow extends AbstractBaseCrawler
     public function dynamic(Crawler $crawler, RequestInterface $request, ?Client $pantherClient = null)
     {
         var_dump('dynamic', $crawler->filterXPath('//title')->text());
-        var_dump($request);
-        var_dump($pantherClient);
+//        var_dump($request);
+//        var_dump($pantherClient);
     }
 }
 
