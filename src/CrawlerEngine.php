@@ -88,6 +88,7 @@ final class CrawlerEngine
 
             $requestHandled->onResolve(function (?\Throwable $reason, ...$arguments) use ($url) {
                 if ($reason !== null) {
+                    var_dump($reason);
                     exit(1);
                 }
 
@@ -106,7 +107,7 @@ final class CrawlerEngine
                 } else {
                     $reflection = new \ReflectionMethod(
                         \is_array($callback) ? $callback[0] : $this->crawler,
-                        $callback ?? 'parser'
+                        \is_array($callback) ? $callback[1] : 'parser'
                     );
                     $invokedFunc = $reflection->invokeArgs($this->crawler, array_filter([$crawler, $request, $client]));
                 }

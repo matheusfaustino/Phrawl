@@ -7,8 +7,10 @@ use Amp\Parallel\Worker\DefaultPool;
 use Amp\Parallel\Worker\Pool;
 use function Amp\ParallelFunctions\parallel;
 use Amp\Promise;
+use Facebook\WebDriver\WebDriverKeys;
 use Phrawl\Request\Types\PantherRequest;
 use Phrawl\Request\Types\RequestInterface;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Panther\Client;
 
 /**
@@ -61,14 +63,35 @@ final class PantherHandler implements HandlerInterface
 
         $this->client = $this->client ?? Client::createChromeClient();
 
-        return call(parallel(function () use ($request) {
-            $crawler = $this->client->request($request->getMethod(), $request->getUri());
+        $promise = call(function () use ($request) {
+            $clientLocal = null;
+            /* DOMDocument cant be serialize */
+            $panther = yield call(parallel(function () use ($request, &$clientLocal) {
+                $this->client->getWebDriver()->getKeyboard()->sendKeys([
+                    WebDriverKeys::CONTROL,
+                    't',
+                ]);
+                $crawler = $this->client->request($request->getMethod(), $request->getUri());
+                $clientLocal = $crawler;
+//                var_dump($this->client->getWebDriver()->getSessionID());
 
-            $waitFor = $request->getWaitFor();
-            $waitFor and $this->client->waitFor($waitFor);
+                $waitFor = $request->getWaitFor();
+                $waitFor and $this->client->waitFor($waitFor);
 
-            /* @todo the client cant be sent because cant be serializable */
-            return [$crawler, $request];
-        }, $this->pool));
+                return [$this->client->getPageSource()];
+            }, $this->pool));
+
+//            var_dump($clientLocal);
+
+            $crawlerSf = new Crawler($panther[0], $request->getUri());
+
+            return [
+                $crawlerSf,
+                $request,
+                $this->client,
+            ];
+        });
+
+        return $promise;
     }
 }

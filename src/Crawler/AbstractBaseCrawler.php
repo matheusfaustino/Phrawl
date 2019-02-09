@@ -6,6 +6,7 @@ use Phrawl\Queue\MemoryQueue;
 use Phrawl\Queue\QueueInterface;
 use Phrawl\Request\Types\RequestInterface;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\Panther\Client;
 
 /**
  * Class AbstractBaseCrawler
@@ -33,9 +34,11 @@ abstract class AbstractBaseCrawler implements CrawlerInterface
      *
      * @param RequestInterface $request
      *
+     * @param Client|null      $pantherClient
+     *
      * @return \Generator|void
      */
-    abstract public function parser(Crawler $crawler, RequestInterface $request);
+    abstract public function parser(Crawler $crawler, RequestInterface $request, ?Client $pantherClient = null);
 
     /**
      * Initial url to start the crawling
