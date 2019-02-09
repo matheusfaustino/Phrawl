@@ -49,7 +49,7 @@ final class PantherHandler implements HandlerInterface
      * Handle request object
      *
      * @todo should this method return the client and the crawler?
-     * @todo verify the behavior of the client object after the function resolves
+     * @todo try to keep the window open after the parallel, so I can manage the window
      *
      * @param RequestInterface $request
      *
@@ -61,27 +61,18 @@ final class PantherHandler implements HandlerInterface
             return null;
         }
 
-        $this->client = $this->client ?? Client::createChromeClient();
-
         $promise = call(function () use ($request) {
-            $clientLocal = null;
             /* DOMDocument cant be serialize */
-            $panther = yield call(parallel(function () use ($request, &$clientLocal) {
-                $this->client->getWebDriver()->getKeyboard()->sendKeys([
-                    WebDriverKeys::CONTROL,
-                    't',
-                ]);
-                $crawler = $this->client->request($request->getMethod(), $request->getUri());
-                $clientLocal = $crawler;
-//                var_dump($this->client->getWebDriver()->getSessionID());
+            $panther = yield call(parallel(function () use ($request) {
+                $clientLocal = Client::createChromeClient();
+
+                $crawler = $clientLocal->request($request->getMethod(), $request->getUri());
 
                 $waitFor = $request->getWaitFor();
-                $waitFor and $this->client->waitFor($waitFor);
+                $waitFor and $clientLocal->waitFor($waitFor);
 
-                return [$this->client->getPageSource()];
+                return [$clientLocal->getPageSource()];
             }, $this->pool));
-
-//            var_dump($clientLocal);
 
             $crawlerSf = new Crawler($panther[0], $request->getUri());
 
