@@ -34,14 +34,16 @@ class YieldHandler implements YieldHandlerInterface
      * @throws UnhandleYieldException
      * @throws NoHandlerYieldValueAvailable
      */
-    public function handle($yieldValue): void
+    public function handle($yieldValue): bool
     {
         if (count($this->handlers) === 0) {
             throw new NoHandlerYieldValueAvailable('No handler for yield value added');
         }
 
         foreach ($this->handlers as $handler) {
-            $handler->handle($yieldValue);
+            if ($handler->handle($yieldValue)) {
+                return true;
+            }
         }
 
         throw new UnhandleYieldException('Unhandled yield value');
