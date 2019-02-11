@@ -12,6 +12,12 @@ use Phrawl\Request\Handlers\HandlerInterface;
 use Phrawl\Request\Handlers\PantherHandler;
 use Phrawl\Request\RequestFactory;
 use Phrawl\Request\Types\RequestInterface;
+use Phrawl\Traits\UseQueueTrait;
+use Phrawl\YieldValues\YieldDumpDataHandler;
+use Phrawl\YieldValues\YieldHandler;
+use Phrawl\YieldValues\YieldHandlerInterface;
+use Phrawl\YieldValues\YieldRequestObjectHandler;
+use Phrawl\YieldValues\YieldStringUrlToQueueValueHandler;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Panther\Client;
 
@@ -38,6 +44,11 @@ final class CrawlerEngine
     private $handler;
 
     /**
+     * @var YieldHandlerInterface
+     */
+    private $yieldHandler;
+
+    /**
      * CrawlerEngine constructor.
      *
      * @param CrawlerInterface $crawler
@@ -52,7 +63,6 @@ final class CrawlerEngine
      * I do not know if this is the "right way", but let's keep this way, for now
      *
      * @throws Crawler\NoStartUrlException
-     * @throws Crawler\NoStartUrlException
      */
     private function setUp(): void
     {
@@ -62,6 +72,18 @@ final class CrawlerEngine
             new PantherHandler(),
             new ArtaxHandler(),
         ]);
+
+        $yieldsObj = [
+            new YieldRequestObjectHandler(),
+            new YieldStringUrlToQueueValueHandler(),
+            new YieldDumpDataHandler(),
+        ];
+        foreach ($yieldsObj as $yield) {
+            if (in_array(UseQueueTrait::class, class_uses($yield), false)) {
+                $yield->setQueue($this->queue);
+            }
+        }
+        $this->yieldHandler = new YieldHandler($yieldsObj);
 
         foreach ($this->crawler->getStartUrl() as $url) {
             if (is_string($url)) {
@@ -114,11 +136,7 @@ final class CrawlerEngine
 
                 if ($reflection->isGenerator()) {
                     foreach ($invokedFunc as $yieldedValue) {
-                        if ($yieldedValue instanceof RequestInterface) {
-                            $this->queue->addItem($yieldedValue);
-                        } elseif (is_string($yieldedValue)) {
-                            $this->queue->addItem(RequestFactory::new('GET', $yieldedValue));
-                        }
+                        $this->yieldHandler->handle($yieldedValue);
 
                         continue;
                     }
