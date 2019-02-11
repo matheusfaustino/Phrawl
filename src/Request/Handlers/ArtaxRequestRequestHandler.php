@@ -13,7 +13,7 @@ use Phrawl\Request\Types\ArtaxRequest;
 use Phrawl\Request\Types\RequestInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
-final class ArtaxHandler implements HandlerInterface
+final class ArtaxRequestRequestHandler implements RequestHandlerInterface
 {
     /**
      * @var DefaultClient

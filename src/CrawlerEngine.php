@@ -6,18 +6,13 @@ use function Amp\Promise\all;
 use function Amp\Promise\wait;
 use Phrawl\Crawler\CrawlerInterface;
 use Phrawl\Queue\QueueInterface;
-use Phrawl\Request\Handlers\ArtaxHandler;
-use Phrawl\Request\Handlers\Handler;
-use Phrawl\Request\Handlers\HandlerInterface;
-use Phrawl\Request\Handlers\PantherHandler;
+use Phrawl\Request\Handlers\RequestRequestHandler;
+use Phrawl\Request\Handlers\RequestHandlerInterface;
 use Phrawl\Request\RequestFactory;
 use Phrawl\Request\Types\RequestInterface;
 use Phrawl\Traits\UseQueueTrait;
-use Phrawl\YieldValues\YieldDumpDataHandler;
 use Phrawl\YieldValues\YieldHandler;
 use Phrawl\YieldValues\YieldHandlerInterface;
-use Phrawl\YieldValues\YieldRequestObjectHandler;
-use Phrawl\YieldValues\YieldStringUrlToQueueValueHandler;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Panther\Client;
 
@@ -39,14 +34,24 @@ final class CrawlerEngine
     private $queue;
 
     /**
-     * @var HandlerInterface
+     * @var RequestHandlerInterface
      */
-    private $handler;
+    private $requestHandler;
+
+    /**
+     * @var RequestHandlerInterface[]
+     */
+    private $requestHandlers;
 
     /**
      * @var YieldHandlerInterface
      */
     private $yieldHandler;
+
+    /**
+     * @var null|YieldHandlerInterface[]
+     */
+    private $yieldHandlers;
 
     /**
      * CrawlerEngine constructor.
@@ -68,22 +73,17 @@ final class CrawlerEngine
     {
         $this->queue = $this->queue ?? $this->crawler->getQueueEngine();
         /* @todo Add handlers here (Panther or Artax) */
-        $this->handler = new Handler([
-            new PantherHandler(),
-            new ArtaxHandler(),
-        ]);
+        $this->requestHandler = $this->requestHandler ?? new RequestRequestHandler(
+                $this->requestHandlers ?? $this->crawler->getRequestHandlers()
+            );
 
-        $yieldsObj = [
-            new YieldRequestObjectHandler(),
-            new YieldStringUrlToQueueValueHandler(),
-            new YieldDumpDataHandler(),
-        ];
+        $yieldsObj = $this->yieldHandlers ?? $this->crawler->getYieldHandlers();
         foreach ($yieldsObj as $yield) {
             if (in_array(UseQueueTrait::class, class_uses($yield), false)) {
                 $yield->setQueue($this->queue);
             }
         }
-        $this->yieldHandler = new YieldHandler($yieldsObj);
+        $this->yieldHandler = $this->yieldHandler ?? new YieldHandler($yieldsObj);
 
         foreach ($this->crawler->getStartUrl() as $url) {
             if (is_string($url)) {
@@ -104,8 +104,7 @@ final class CrawlerEngine
         $requests = [];
         foreach ($this->queue->fetch() as $url) {
             /* @todo implement plugin handler */
-            /* @todo implement Strategy patter for request */
-            $requestHandled = $this->handler->handle($url);
+            $requestHandled = $this->requestHandler->handle($url);
             $requests[] = $requestHandled;
 
             $requestHandled->onResolve(function (?\Throwable $reason, ...$arguments) use ($url) {
@@ -137,8 +136,6 @@ final class CrawlerEngine
                 if ($reflection->isGenerator()) {
                     foreach ($invokedFunc as $yieldedValue) {
                         $this->yieldHandler->handle($yieldedValue);
-
-                        continue;
                     }
 
                     return;
@@ -166,13 +163,49 @@ final class CrawlerEngine
     }
 
     /**
-     * @param HandlerInterface $handler
+     * @param YieldHandlerInterface $yieldHandler
      *
      * @return CrawlerEngine
      */
-    public function setHandler(HandlerInterface $handler): CrawlerEngine
+    public function setYieldHandler(YieldHandlerInterface $yieldHandler): CrawlerEngine
     {
-        $this->handler = $handler;
+        $this->yieldHandler = $yieldHandler;
+
+        return $this;
+    }
+
+    /**
+     * @param YieldHandlerInterface[]|null $yieldHandlers
+     *
+     * @return CrawlerEngine
+     */
+    public function setYieldHandlers(?array $yieldHandlers): CrawlerEngine
+    {
+        $this->yieldHandlers = $yieldHandlers;
+
+        return $this;
+    }
+
+    /**
+     * @param RequestHandlerInterface $requestHandler
+     *
+     * @return CrawlerEngine
+     */
+    public function setRequestHandler(RequestHandlerInterface $requestHandler): CrawlerEngine
+    {
+        $this->requestHandler = $requestHandler;
+
+        return $this;
+    }
+
+    /**
+     * @param RequestHandlerInterface[] $requestHandlers
+     *
+     * @return CrawlerEngine
+     */
+    public function setRequestHandlers(array $requestHandlers): CrawlerEngine
+    {
+        $this->requestHandlers = $requestHandlers;
 
         return $this;
     }

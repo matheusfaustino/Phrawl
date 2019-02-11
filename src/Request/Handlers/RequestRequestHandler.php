@@ -6,21 +6,21 @@ use Amp\Promise;
 use Phrawl\Request\Types\RequestInterface;
 
 /**
- * Class Handler
+ * Class RequestRequestHandler
  *
  * @package Phrawl\Request
  */
-final class Handler implements HandlerInterface
+final class RequestRequestHandler implements RequestHandlerInterface
 {
     /**
-     * @var HandlerInterface[]
+     * @var RequestHandlerInterface[]
      */
     private $handlers = [];
 
     /**
-     * Handler constructor.
+     * RequestRequestHandler constructor.
      *
-     * @param HandlerInterface[] $handlers
+     * @param RequestHandlerInterface[] $handlers
      */
     public function __construct(array $handlers)
     {
@@ -33,13 +33,13 @@ final class Handler implements HandlerInterface
      * @param RequestInterface $request
      *
      * @return Promise|PromiseInterface|null
-     * @throws NoHandlerAvailableException
-     * @throws UnhandleException
+     * @throws NoRequestHandlerAvailableException
+     * @throws UnhandleRequestException
      */
     public function handle(RequestInterface $request)
     {
         if (count($this->handlers) === 0) {
-            throw new NoHandlerAvailableException('No handler added');
+            throw new NoRequestHandlerAvailableException('No handler added');
         }
 
         /* @todo throws exception if it's empty */
@@ -50,6 +50,6 @@ final class Handler implements HandlerInterface
             }
         }
 
-        throw new UnhandleException('Unhandled Request');
+        throw new UnhandleRequestException('Unhandled Request');
     }
 }

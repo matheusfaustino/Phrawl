@@ -4,7 +4,12 @@ namespace Phrawl\Crawler;
 
 use Phrawl\Queue\MemoryQueue;
 use Phrawl\Queue\QueueInterface;
+use Phrawl\Request\Handlers\ArtaxRequestRequestHandler;
+use Phrawl\Request\Handlers\PantherRequestRequestHandler;
 use Phrawl\Request\Types\RequestInterface;
+use Phrawl\YieldValues\YieldDumpDataHandler;
+use Phrawl\YieldValues\YieldRequestObjectHandler;
+use Phrawl\YieldValues\YieldStringUrlToQueueValueHandler;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Panther\Client;
 
@@ -67,5 +72,28 @@ abstract class AbstractBaseCrawler implements CrawlerInterface
     public function getQueueEngine(): QueueInterface
     {
         return new MemoryQueue();
+    }
+
+    /**
+     * @return array
+     */
+    public function getYieldHandlers(): array
+    {
+        return [
+            new YieldRequestObjectHandler(),
+            new YieldStringUrlToQueueValueHandler(),
+            new YieldDumpDataHandler(),
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function getRequestHandlers(): array
+    {
+        return [
+            new ArtaxRequestRequestHandler(),
+            new PantherRequestRequestHandler(),
+        ];
     }
 }

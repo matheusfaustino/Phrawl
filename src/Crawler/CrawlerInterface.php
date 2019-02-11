@@ -39,4 +39,18 @@ interface CrawlerInterface
      * @return QueueInterface
      */
     public function getQueueEngine(): QueueInterface;
+
+    /**
+     * Return array of yield handlers that manage the yield values from crawler's function
+     *
+     * @return array
+     */
+    public function getYieldHandlers(): array;
+
+    /**
+     * Return Request handlers which will process each request
+     *
+     * @return array
+     */
+    public function getRequestHandlers(): array;
 }

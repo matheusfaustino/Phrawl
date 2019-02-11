@@ -7,12 +7,12 @@ use Phrawl\Request\Types\RequestInterface;
 use React\Promise\PromiseInterface;
 
 /**
- * Interface HandlerInterface
+ * Interface RequestHandlerInterface
  * Chain of Responsibility Pattern
  *
  * @package Phrawl\Request
  */
-interface HandlerInterface
+interface RequestHandlerInterface
 {
     /**
      * Handle request object

@@ -14,11 +14,11 @@ use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Panther\Client;
 
 /**
- * Class PantherHandler
+ * Class PantherRequestRequestHandler
  *
  * @package Phrawl\Request\Handlers
  */
-final class PantherHandler implements HandlerInterface
+final class PantherRequestRequestHandler implements RequestHandlerInterface
 {
     /**
      * It is fixed because panther does not work well with more than one client at the same time
@@ -36,7 +36,7 @@ final class PantherHandler implements HandlerInterface
     private $client;
 
     /**
-     * PantherHandler constructor.
+     * PantherRequestRequestHandler constructor.
      *
      * @param null|Pool $pool
      */
